@@ -13,7 +13,8 @@ import CalculadoraCosto from './components/CalculadoraCosto.vue'
 
 <style scoped>
 .v-main {
-  max-width: 700px;
+  width: 1000px;
   margin: auto;
 }
+
 </style>
