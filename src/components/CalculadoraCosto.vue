@@ -1,9 +1,9 @@
 <!-- src/components/CalculadoraCosto.vue -->
 <template>
   <v-card class="pa-4" elevation="5">
-    <v-card-title class="titulo">COSTOS-GANANCIAS MALLAS</v-card-title>
+    <v-card-title class="titulo">COSTOS - GANANCIAS MALLAS</v-card-title>
     <v-divider class="my-4" />
-    <v-card-title>Valores de costos (USD)</v-card-title>
+    <v-card-title style="color: #4c6cd4">Valores de costos (USD)</v-card-title>
     <v-row>
       <v-col>
         <v-text-field
@@ -63,7 +63,9 @@
       </v-col>
     </v-row>
     <v-divider class="my-4" />
-    <v-card-title>Ingresar los datos de la malla</v-card-title>
+    <v-card-title style="color: #4c6cd4"
+      >Ingresar los datos de la malla</v-card-title
+    >
     <v-row>
       <v-col cols="3">
         <v-text-field v-model.number="ancho" label="Ancho (mm)" type="number" />
@@ -160,28 +162,35 @@
     <v-divider class="my-4" />
     <v-row align="center">
       <v-col cols="4" style="text-align: start">
-        <v-alert type="info">
+        <v-alert style="color: #4c6cd4">
           <strong>Total Superficie</strong><br />
           <strong> {{ area.toFixed(3) }} m2</strong>
         </v-alert>
       </v-col>
       <v-col cols="4" style="text-align: start">
-        <v-alert type="info">
+        <v-alert style="color: #4c6cd4">
           <strong>Costo Total</strong><br />
           <strong> ${{ costoTotal.toFixed(3) }}</strong>
         </v-alert>
       </v-col>
       <v-col cols="4" style="text-align: start">
-        <v-alert type="info" variant="tonal">
+        <v-alert style="color: #4c6cd4">
           <strong>Ganancia estimada</strong> <br />
           <strong>${{ ganancia.toFixed(3) }}</strong>
         </v-alert>
       </v-col>
     </v-row>
     <v-row justify="center" class="mt-4 mb-4">
-      <v-btn color="primary" @click="agregarRegistro"> Mostrar en tabla </v-btn>
+      <v-btn color="#3877F4" @click="agregarRegistro"> Mostrar en tabla </v-btn>
+      <v-btn color="#dc3c2c" class="ml-5" @click="exportToExcel">
+        Exportar a Excel
+      </v-btn>
     </v-row>
     <v-divider class="my-4" />
+    <v-card-title style="color: #4c6cd4; text-align: center">
+      Tabla de Registros de Mallas
+    </v-card-title>
+
     <v-data-table
       :headers="headers"
       :items="items"
@@ -203,15 +212,13 @@
         {{ formatCurrency(item.costoTotal) }}
       </template>
     </v-data-table>
-    <v-btn color="success" class="ma-2" @click="exportToExcel">
-      Exportar a Excel
-    </v-btn>
   </v-card>
 </template>
 
 <script setup>
 import { ref, computed } from "vue";
 import * as XLSX from "xlsx";
+import { VDataTable } from "vuetify/components";
 
 // Entradas
 const largo = ref(0);
@@ -226,7 +233,7 @@ const cantZ16 = ref(0);
 const cantZ6 = ref(0);
 const cantZ10 = ref(0);
 const cantAletas = ref(0);
-const VALOR_VENTA_MALLA = 173;
+const VALOR_VENTA_MALLA = 208;
 const registros = ref([]);
 const items = ref([]);
 const headers = [
@@ -276,14 +283,14 @@ const agregarRegistro = () => {
 const VALORES = {
   mallaPaleta: 180,
   mallaLisa: 145,
+  mallaVenta: 208,
   z16: 7,
   z6: 2,
   z10: 2,
   aleta: 15.2,
-  mallaVenta: 173,
 };
 const formatCurrency = (value) => {
-  return `$${Number(value).toFixed(2)}`;
+  return `$${Number(value).toFixed(3)}`;
 };
 
 const area = computed(() => ((ancho.value / 1000) * largo.value) / 1000);
@@ -312,6 +319,7 @@ const valorEnMetros = (valor) => {
 
 const exportToExcel = () => {
   const data = registros.value.map((item) => ({
+    Orden: item.nroOrden,
     Ancho: item.ancho,
     Largo: item.largo,
     Área: item.area,
@@ -329,13 +337,11 @@ const exportToExcel = () => {
   XLSX.utils.book_append_sheet(workbook, worksheet, "Mallas");
   XLSX.writeFile(workbook, "costos_mallas.xlsx");
 };
-
 </script>
 <style>
 .titulo {
   text-align: center;
-  color: #ff5722;
-  font-weight: bold;
+  color: #4c6cd4;
 }
 
 .custom-table .v-data-table {
@@ -344,7 +350,7 @@ const exportToExcel = () => {
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
 }
 
-.custom-table .v-data-table-header {
+.custom-table .v-data-table thead {
   background-color: #1976d2;
   color: white;
   font-weight: bold;
