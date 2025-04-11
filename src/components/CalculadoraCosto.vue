@@ -190,21 +190,21 @@
     <v-card-title style="color: #4c6cd4; text-align: center">
       Tabla de Registros de Mallas
     </v-card-title>
-
-    <v-data-table
-      :headers="headers"
-      :items="items"
-      class="elevation-1 custom-table"
-      hide-default-footer
-      dense
-    >
+    <v-data-table :headers="headers" :items="items" class="custom-table">
+      <template v-slot:headers="{ columns }">
+        <tr>
+          <th v-for="column in columns" :key="column.key" class="custom-header">
+            {{ column.title }}
+          </th>
+        </tr>
+      </template>
       <template v-slot:item-ganancia="{ item }">
         <span
           :class="
             item.ganancia >= 0 ? 'ganancia-positiva' : 'ganancia-negativa'
           "
         >
-          {{ formatCurrency(item.ganancia) }}
+          {{ formatCurrency(item.ganancia).toFixed(3) }}
         </span>
       </template>
 
@@ -237,6 +237,7 @@ const VALOR_VENTA_MALLA = 208;
 const registros = ref([]);
 const items = ref([]);
 const headers = [
+  { text: "N° Orden", value: "nroOrden", align: "center" },
   { text: "Ancho", value: "ancho", align: "center" },
   { text: "Largo", value: "largo", align: "center" },
   { text: "Superficie Total", value: "area", align: "center" },
@@ -251,6 +252,7 @@ const headers = [
 
 const agregarRegistro = () => {
   registros.value.push({
+    nroOrden: nroOrden.value,
     ancho: ancho.value,
     largo: largo.value,
     area: area.value,
@@ -259,7 +261,7 @@ const agregarRegistro = () => {
     z6: z6.value === "SI" ? cantZ6.value : 0,
     z10: z10.value === "SI" ? cantZ10.value : 0,
     aletas: aletas.value === "SI" ? cantAletas.value : 0,
-    costo: costoTotal.value,
+    costoTotal: costoTotal.value, // <-- CAMBIÁ ESTO
     ganancia: area.value * VALOR_VENTA_MALLA - costoTotal.value,
   });
 
@@ -314,21 +316,21 @@ const ganancia = computed(() => {
 });
 
 const valorEnMetros = (valor) => {
-  return (valor / 1000).toFixed(2);
+  return (valor / 1000).toFixed(3);
 };
 
 const exportToExcel = () => {
   const data = registros.value.map((item) => ({
-    Orden: item.nroOrden,
+    "Nro. Orden": item.nroOrden,
     Ancho: item.ancho,
     Largo: item.largo,
-    Área: item.area,
+    "Superficie Total": item.area,
     Paleta: item.paleta,
     Z16: item.z16,
     Z6: item.z6,
     Z10: item.z10,
     Aletas: item.aletas,
-    "Costo Total": item.costo,
+    "Costo Total": item.costoTotal,
     Ganancia: item.ganancia,
   }));
 
@@ -344,33 +346,16 @@ const exportToExcel = () => {
   color: #4c6cd4;
 }
 
-.custom-table .v-data-table {
+.custom-table {
   border-radius: 8px;
-  overflow: hidden;
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
 }
 
-.custom-table .v-data-table thead {
+.custom-header {
   background-color: #1976d2;
   color: white;
-  font-weight: bold;
-  text-transform: uppercase;
-  font-size: 14px;
-}
-
-.custom-table .v-data-table__td {
+  padding: 8px;
   text-align: center;
-  padding: 12px;
-  font-size: 14px;
-}
-
-.custom-table .v-data-table__tr:nth-child(even) {
-  background-color: #f9f9f9;
-}
-
-.custom-table .v-data-table__tr:hover {
-  background-color: #e3f2fd;
-  transition: background-color 0.3s ease;
 }
 
 .ganancia-positiva {
