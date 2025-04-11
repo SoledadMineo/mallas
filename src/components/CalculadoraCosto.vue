@@ -1,9 +1,9 @@
 <!-- src/components/CalculadoraCosto.vue -->
 <template>
   <v-card class="pa-4" elevation="5">
-    <v-card-title class="titulo">COSTOS - GANANCIAS MALLAS</v-card-title>
+    <v-card-title class="titulo"><strong>COSTOS - GANANCIAS MALLAS</strong></v-card-title>
     <v-divider class="my-4" />
-    <v-card-title style="color: #4c6cd4">Valores de costos (USD)</v-card-title>
+    <v-card-title style="color: #4c6cd4"><strong>Valores de costos (USD)</strong></v-card-title>
     <v-row>
       <v-col>
         <v-text-field
@@ -74,7 +74,7 @@
     </v-row>
     <v-divider class="my-4" />
     <v-card-title style="color: #4c6cd4"
-      >Ingresar los datos de la malla</v-card-title
+      ><strong>Ingresar los datos de la malla</strong></v-card-title
     >
     <v-row>
       <v-col cols="3">
@@ -219,8 +219,7 @@
       </v-btn>
     </v-row>
     <v-divider class="my-4" />
-    <v-card-title style="color: #4c6cd4; text-align: center">
-      Tabla de Registros de Mallas
+    <v-card-title style="color: #4c6cd4; text-align: center"><strong>Tabla de Registros de Mallas</strong>
     </v-card-title>
     <v-data-table :headers="headers" :items="items" class="custom-table">
       <template v-slot:headers="{ columns }">
