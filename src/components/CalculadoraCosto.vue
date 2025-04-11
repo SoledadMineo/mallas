@@ -37,6 +37,8 @@
           density="compact"
         />
       </v-col>
+    </v-row>
+    <v-row>
       <v-col>
         <v-text-field
           label="Malla Lisa"
@@ -57,6 +59,14 @@
         <v-text-field
           label="Dolar"
           :model-value="1095"
+          disabled
+          density="compact"
+        />
+      </v-col>
+      <v-col>
+        <v-text-field
+          label="Valor Venta Malla"
+          :model-value="208"
           disabled
           density="compact"
         />
@@ -106,21 +116,6 @@
       </v-col>
       <v-col cols="4">
         <v-select
-          v-model="z16"
-          :items="['SI', 'NO']"
-          label="¿Tiene piñones Z16?"
-        />
-        <v-text-field
-          v-if="z16 === 'SI'"
-          v-model.number="cantZ16"
-          label="Cantidad Z16"
-          type="number"
-        />
-      </v-col>
-    </v-row>
-    <v-row>
-      <v-col cols="4">
-        <v-select
           v-model="z6"
           :items="['SI', 'NO']"
           label="¿Tiene piñones Z6?"
@@ -132,6 +127,8 @@
           type="number"
         />
       </v-col>
+    </v-row>
+    <v-row>
       <v-col cols="4">
         <v-select
           v-model="z10"
@@ -142,6 +139,19 @@
           v-if="z10 === 'SI'"
           v-model.number="cantZ10"
           label="Cantidad Z10"
+          type="number"
+        />
+      </v-col>
+      <v-col cols="4">
+        <v-select
+          v-model="z16"
+          :items="['SI', 'NO']"
+          label="¿Tiene piñones Z16?"
+        />
+        <v-text-field
+          v-if="z16 === 'SI'"
+          v-model.number="cantZ16"
+          label="Cantidad Z16"
           type="number"
         />
       </v-col>
@@ -169,17 +179,39 @@
       </v-col>
       <v-col cols="4" style="text-align: start">
         <v-alert style="color: #4c6cd4">
-          <strong>Costo Total</strong><br />
-          <strong> ${{ costoTotal.toFixed(3) }}</strong>
+          <strong>Costo Total Malla</strong><br />
+          <strong>USD {{ costoTotal.toFixed(2) }}</strong>
         </v-alert>
       </v-col>
       <v-col cols="4" style="text-align: start">
         <v-alert style="color: #4c6cd4">
-          <strong>Ganancia estimada</strong> <br />
-          <strong>${{ ganancia.toFixed(3) }}</strong>
+          <strong>Valor Total Venta Malla</strong> <br />
+          <strong>USD {{ ventaMalla.toFixed(2) }}</strong>
         </v-alert>
       </v-col>
     </v-row>
+    <v-row align="center">
+      <v-col cols="4" style="text-align: start">
+        <v-alert style="color: #4c6cd4">
+          <strong>Ganancia Total</strong><br />
+          <strong>USD {{ gananciaUSD.toFixed(2) }} m2</strong>
+        </v-alert>
+      </v-col>
+      <v-col cols="4" style="text-align: start">
+        <v-alert style="color: #4c6cd4">
+          <strong>Ganancia Total</strong><br />
+          <strong>$ {{ ganancia$.toFixed(2) }}</strong>
+        </v-alert>
+      </v-col>
+      <v-col cols="4" style="text-align: start">
+        <v-alert style="color: #4c6cd4">
+          <strong>Ganancia Total p/p</strong> <br />
+          <strong>$ {{ gananciaPP.toFixed(2) }}</strong>
+        </v-alert>
+      </v-col>
+    </v-row>
+    <!-- <p>Fórmula: {{ formulaCosto }} = ${{ costoTotal }}</p> -->
+
     <v-row justify="center" class="mt-4 mb-4">
       <v-btn color="#3877F4" @click="agregarRegistro"> Mostrar en tabla </v-btn>
       <v-btn color="#dc3c2c" class="ml-5" @click="exportToExcel">
@@ -194,23 +226,26 @@
       <template v-slot:headers="{ columns }">
         <tr>
           <th v-for="column in columns" :key="column.key" class="custom-header">
-            {{ column.title }}
+            {{ column.text }}
           </th>
         </tr>
       </template>
-      <template v-slot:item-ganancia="{ item }">
-        <span
-          :class="
-            item.ganancia >= 0 ? 'ganancia-positiva' : 'ganancia-negativa'
-          "
-        >
-          {{ formatCurrency(item.ganancia).toFixed(3) }}
-        </span>
+      <template v-slot:item-costoTotal="{ item }">
+        {{ item.costoTotal }}
+      </template>
+      <template v-slot:item-ventaMalla="{ item }">
+        {{ item.ventaMalla }}
+      </template>
+      <template v-slot:item-gananciaUSD="{ item }">
+        {{ item.gananciaUSD }}
+      </template>
+      <template v-slot:item-ganancia$="{ item }">
+        {{ item.ganancia$ }}
+      </template>
+      <template v-slot:item-gananciaPP="{ item }">
+        {{ item.gananciaPP }}
       </template>
 
-      <template v-slot:item-costoTotal="{ item }">
-        {{ formatCurrency(item.costoTotal) }}
-      </template>
     </v-data-table>
   </v-card>
 </template>
@@ -238,17 +273,30 @@ const registros = ref([]);
 const items = ref([]);
 const headers = [
   { text: "N° Orden", value: "nroOrden", align: "center" },
-  { text: "Ancho", value: "ancho", align: "center" },
-  { text: "Largo", value: "largo", align: "center" },
-  { text: "Superficie Total", value: "area", align: "center" },
+  { text: "Ancho (m)", value: "ancho", align: "center" },
+  { text: "Largo (m)", value: "largo", align: "center" },
+  { text: "Sup. Total (m)", value: "area", align: "center" },
   { text: "Paleta", value: "paleta", align: "center" },
-  { text: "Z16", value: "z16", align: "center" },
   { text: "Z6", value: "z6", align: "center" },
   { text: "Z10", value: "z10", align: "center" },
+  { text: "Z16", value: "z16", align: "center" },
   { text: "Aletas", value: "aletas", align: "center" },
   { text: "Costo Total", value: "costoTotal", align: "center" },
-  { text: "Ganancia", value: "ganancia", align: "center" },
+  { text: "Valor Venta", value: "ventaMalla", align: "center" },
+  { text: "Ganancia USD", value: "gananciaUSD", align: "center" },
+  { text: "Ganancia $", value: "ganancia$", align: "center" },
+  { text: "Ganancia p/p", value: "gananciaPP", align: "center" },
 ];
+const VALORES = {
+  mallaPaleta: 180,
+  mallaLisa: 145,
+  mallaVenta: 208,
+  z16: 7,
+  z6: 2,
+  z10: 2,
+  aleta: 15.2,
+  dolar: 1095,
+};
 
 const agregarRegistro = () => {
   registros.value.push({
@@ -257,12 +305,15 @@ const agregarRegistro = () => {
     largo: largo.value,
     area: area.value,
     paleta: paleta.value,
-    z16: z16.value === "SI" ? cantZ16.value : 0,
     z6: z6.value === "SI" ? cantZ6.value : 0,
     z10: z10.value === "SI" ? cantZ10.value : 0,
+    z16: z16.value === "SI" ? cantZ16.value : 0,
     aletas: aletas.value === "SI" ? cantAletas.value : 0,
-    costoTotal: costoTotal.value, // <-- CAMBIÁ ESTO
-    ganancia: area.value * VALOR_VENTA_MALLA - costoTotal.value,
+    costoTotal: Number(costoTotal.value.toFixed(2)),
+    ventaMalla: Number(ventaMalla.value.toFixed(2)),
+    gananciaUSD: Number(gananciaUSD.value.toFixed(2)),
+    ganancia$: Number(ganancia$.value.toFixed(2)),
+    gananciaPP: Number(gananciaPP.value.toFixed(2)),
   });
 
   // Opcional: limpiar formulario
@@ -281,20 +332,6 @@ const agregarRegistro = () => {
   items.value = [...registros.value]; // esto actualiza la tabla
 };
 
-// Valores fijos (pueden venir de una API en el futuro)
-const VALORES = {
-  mallaPaleta: 180,
-  mallaLisa: 145,
-  mallaVenta: 208,
-  z16: 7,
-  z6: 2,
-  z10: 2,
-  aleta: 15.2,
-};
-const formatCurrency = (value) => {
-  return `$${Number(value).toFixed(3)}`;
-};
-
 const area = computed(() => ((ancho.value / 1000) * largo.value) / 1000);
 
 const costoTotal = computed(() => {
@@ -303,38 +340,79 @@ const costoTotal = computed(() => {
     paleta.value === "SI" ? VALORES.mallaPaleta : VALORES.mallaLisa;
   total += area.value * precioMalla;
 
-  if (z16.value === "SI") total += cantZ16.value * VALORES.z16;
-  if (z6.value === "SI") total += cantZ6.value * VALORES.z6;
-  if (z10.value === "SI") total += cantZ10.value * VALORES.z10;
-  if (aletas.value === "SI") total += cantAletas.value * VALORES.aleta;
+  if (z16.value === "SI") total += cantZ16.value * VALORES.z16 * area.value;
+  if (z6.value === "SI") total += cantZ6.value * VALORES.z6 * area.value;
+  if (z10.value === "SI") total += cantZ10.value * VALORES.z10 * area.value;
+  if (aletas.value === "SI")
+    total += cantAletas.value * VALORES.aleta * area.value;
 
   return total;
 });
 
-const ganancia = computed(() => {
-  return area.value * VALOR_VENTA_MALLA - costoTotal.value;
+// const formulaCosto = computed(() => {
+//   const partes = [];
+//   const precioMalla =
+//     paleta.value === "SI" ? VALORES.mallaPaleta : VALORES.mallaLisa;
+//   partes.push(`${area.value} x ${precioMalla}`);
+
+//   if (z16.value === "SI")
+//     partes.push(`${cantZ16.value} x ${VALORES.z16} x ${area.value}`);
+//   if (z6.value === "SI")
+//     partes.push(`${cantZ6.value} x ${VALORES.z6} x ${area.value}`);
+//   if (z10.value === "SI")
+//     partes.push(`${cantZ10.value} x ${VALORES.z10} x ${area.value}`);
+//   if (aletas.value === "SI")
+//     partes.push(`${cantAletas.value} x ${VALORES.aleta} x ${area.value}`);
+
+//   return partes.join(" + ");
+// });
+
+const calculos = computed(() => {
+  const ventaMalla = area.value * VALOR_VENTA_MALLA;
+  const gananciaUSD = ventaMalla - costoTotal.value;
+  const ganancia$ = gananciaUSD * VALORES.dolar;
+  const gananciaPP = ganancia$ / 5;
+
+  return { ventaMalla, gananciaUSD, ganancia$, gananciaPP };
 });
+
+const ventaMalla = computed(() => calculos.value.ventaMalla);
+const gananciaUSD = computed(() => calculos.value.gananciaUSD);
+const ganancia$ = computed(() => calculos.value.ganancia$);
+const gananciaPP = computed(() => calculos.value.gananciaPP);
 
 const valorEnMetros = (valor) => {
   return (valor / 1000).toFixed(3);
 };
 
 const exportToExcel = () => {
-  const data = registros.value.map((item) => ({
-    "Nro. Orden": item.nroOrden,
-    Ancho: item.ancho,
-    Largo: item.largo,
-    "Superficie Total": item.area,
-    Paleta: item.paleta,
-    Z16: item.z16,
-    Z6: item.z6,
-    Z10: item.z10,
-    Aletas: item.aletas,
-    "Costo Total": item.costoTotal,
-    Ganancia: item.ganancia,
+  const data = registros.value.map((item, index) => ({
+    'Nro. Orden': index + 1,
+    'Ancho': item.ancho,
+    'Largo': item.largo,
+    'Superficie Total': item.superficieTotal,
+    'Paleta': item.paleta,
+    'Z16': item.z16,
+    'Z6': item.z6,
+    'Z10': item.z10,
+    'Aletas': item.aletas,
+    'Costo Total': item.costoTotal,
+    'Venta Malla': item.ventaMalla,
+    'Ganancia Total-USD': item.gananciaUSD,
+    'Ganancia Total-$': item.ganancia$,
+    'Ganancia p/p - $': item.gananciaPP
   }));
 
   const worksheet = XLSX.utils.json_to_sheet(data);
+
+  worksheet['!cols'] = [
+    { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 12 }, { wch: 8 },
+    { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 },
+    { wch: 15 }, { wch: 18 }, { wch: 18 }, { wch: 18 }
+  ];
+
+  worksheet['!freeze'] = { xSplit: 0, ySplit: 1 };
+
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheet, "Mallas");
   XLSX.writeFile(workbook, "costos_mallas.xlsx");
